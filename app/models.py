@@ -83,6 +83,7 @@ class Appointment(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     patient_id = db.Column(db.Integer, db.ForeignKey('patients.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('doctors.id'))
     appointment_date = db.Column(db.DateTime, nullable=False)
     appointment_type = db.Column(db.String(50), nullable=False)  # consultation, follow-up, etc.
     status = db.Column(db.String(20), default='scheduled')  # scheduled, confirmed, completed, cancelled
@@ -97,6 +98,7 @@ class Appointment(db.Model):
         return {
             'id': self.id,
             'patient_id': self.patient_id,
+            'doctor_id': self.doctor_id,
             'appointment_date': self.appointment_date.isoformat(),
             'appointment_type': self.appointment_type,
             'status': self.status,
@@ -233,4 +235,176 @@ class ChatMessage(db.Model):
             'message_type': self.message_type,
             'metadata': self.message_metadata,
             'timestamp': self.timestamp.isoformat()
+        }
+
+class ClinicSettings(db.Model):
+    """Clinic settings model for storing clinic information and configuration."""
+    __tablename__ = 'clinic_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    clinic_name = db.Column(db.String(200), nullable=False, default='Medical Clinic')
+    clinic_logo_url = db.Column(db.String(500))
+    address_line1 = db.Column(db.String(200))
+    address_line2 = db.Column(db.String(200))
+    city = db.Column(db.String(100))
+    state = db.Column(db.String(100))
+    zip_code = db.Column(db.String(20))
+    country = db.Column(db.String(100), default='USA')
+    phone = db.Column(db.String(20))
+    email = db.Column(db.String(120))
+    website = db.Column(db.String(200))
+    
+    # Operating Hours (JSON format)
+    operating_hours = db.Column(db.Text)  # JSON: {"monday": {"open": "09:00", "close": "17:00", "closed": false}, ...}
+    
+    # Departments/Specialties (JSON format)
+    departments = db.Column(db.Text)  # JSON: [{"name": "Dental", "description": "..."}, ...]
+    
+    # Notification settings
+    email_notifications = db.Column(db.Boolean, default=True)
+    sms_notifications = db.Column(db.Boolean, default=False)
+    
+    # Timezone
+    timezone = db.Column(db.String(50), default='UTC')
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'clinic_name': self.clinic_name,
+            'clinic_logo_url': self.clinic_logo_url,
+            'address_line1': self.address_line1,
+            'address_line2': self.address_line2,
+            'city': self.city,
+            'state': self.state,
+            'zip_code': self.zip_code,
+            'country': self.country,
+            'phone': self.phone,
+            'email': self.email,
+            'website': self.website,
+            'operating_hours': self.operating_hours,
+            'departments': self.departments,
+            'email_notifications': self.email_notifications,
+            'sms_notifications': self.sms_notifications,
+            'timezone': self.timezone,
+            'updated_at': self.updated_at.isoformat()
+        }
+
+class Doctor(db.Model):
+    """Doctor model for storing doctor information and availability."""
+    __tablename__ = 'doctors'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    title = db.Column(db.String(20))  # Dr., MD, etc.
+    specialization = db.Column(db.String(100))
+    department = db.Column(db.String(100))
+    email = db.Column(db.String(120))
+    phone = db.Column(db.String(20))
+    license_number = db.Column(db.String(50))
+    
+    # Availability (JSON format)
+    availability = db.Column(db.Text)  # JSON: {"monday": [{"start": "09:00", "end": "12:00"}, ...], ...}
+    
+    # Consultation modes
+    in_person_consultation = db.Column(db.Boolean, default=True)
+    video_consultation = db.Column(db.Boolean, default=False)
+    phone_consultation = db.Column(db.Boolean, default=False)
+    
+    # Profile information
+    bio = db.Column(db.Text)
+    profile_image_url = db.Column(db.String(500))
+    years_of_experience = db.Column(db.Integer)
+    languages_spoken = db.Column(db.String(200))  # Comma-separated
+    
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    appointments = db.relationship('Appointment', backref='doctor', lazy=True)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'title': self.title,
+            'specialization': self.specialization,
+            'department': self.department,
+            'email': self.email,
+            'phone': self.phone,
+            'availability': self.availability,
+            'in_person_consultation': self.in_person_consultation,
+            'video_consultation': self.video_consultation,
+            'phone_consultation': self.phone_consultation,
+            'bio': self.bio,
+            'profile_image_url': self.profile_image_url,
+            'years_of_experience': self.years_of_experience,
+            'languages_spoken': self.languages_spoken,
+            'is_active': self.is_active
+        }
+
+class BookingSettings(db.Model):
+    """Booking settings model for appointment configuration."""
+    __tablename__ = 'booking_settings'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    
+    # Time slot settings
+    slot_duration = db.Column(db.Integer, default=30)  # minutes per appointment
+    buffer_time = db.Column(db.Integer, default=5)  # minutes between appointments
+    
+    # Daily limits
+    max_appointments_per_day = db.Column(db.Integer, default=20)
+    max_appointments_per_doctor = db.Column(db.Integer, default=10)
+    
+    # Booking window
+    advance_booking_days = db.Column(db.Integer, default=30)  # how far in advance can patients book
+    min_booking_notice_hours = db.Column(db.Integer, default=2)  # minimum notice required
+    
+    # Approval settings
+    auto_approve_appointments = db.Column(db.Boolean, default=False)
+    require_staff_approval = db.Column(db.Boolean, default=True)
+    
+    # Cancellation settings
+    allow_patient_cancellation = db.Column(db.Boolean, default=True)
+    cancellation_notice_hours = db.Column(db.Integer, default=24)
+    
+    # Notification settings
+    send_confirmation_email = db.Column(db.Boolean, default=True)
+    send_reminder_email = db.Column(db.Boolean, default=True)
+    reminder_hours_before = db.Column(db.Integer, default=24)
+    
+    # Working hours (JSON format)
+    working_hours = db.Column(db.Text)  # JSON: {"monday": {"start": "09:00", "end": "17:00", "enabled": true}, ...}
+    
+    # Holiday/blocked dates (JSON format)
+    blocked_dates = db.Column(db.Text)  # JSON: ["2024-12-25", "2024-01-01", ...]
+    
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'slot_duration': self.slot_duration,
+            'buffer_time': self.buffer_time,
+            'max_appointments_per_day': self.max_appointments_per_day,
+            'max_appointments_per_doctor': self.max_appointments_per_doctor,
+            'advance_booking_days': self.advance_booking_days,
+            'min_booking_notice_hours': self.min_booking_notice_hours,
+            'auto_approve_appointments': self.auto_approve_appointments,
+            'require_staff_approval': self.require_staff_approval,
+            'allow_patient_cancellation': self.allow_patient_cancellation,
+            'cancellation_notice_hours': self.cancellation_notice_hours,
+            'send_confirmation_email': self.send_confirmation_email,
+            'send_reminder_email': self.send_reminder_email,
+            'reminder_hours_before': self.reminder_hours_before,
+            'working_hours': self.working_hours,
+            'blocked_dates': self.blocked_dates,
+            'updated_at': self.updated_at.isoformat()
         }

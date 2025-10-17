@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, session
 from app.models import Patient, Appointment, FAQ, AftercareInstruction
 from app import db
+from app.routes.auth import admin_required
 import uuid
 
 main_bp = Blueprint('main', __name__)
@@ -23,6 +24,7 @@ def index():
     return render_template('index.html', session_id=session['chat_session_id'])
 
 @main_bp.route('/admin')
+@admin_required
 def admin_dashboard():
     """Admin dashboard for managing the system."""
     # Get basic statistics

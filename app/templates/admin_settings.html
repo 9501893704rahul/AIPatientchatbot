@@ -1,0 +1,1036 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Settings - Clinic AI Assistant{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-cogs me-2"></i>
+                Admin Settings
+            </h2>
+        </div>
+    </div>
+
+    <!-- Settings Navigation Tabs -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <ul class="nav nav-tabs card-header-tabs" id="settingsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="clinic-info-tab" data-bs-toggle="tab" data-bs-target="#clinic-info" type="button" role="tab">
+                                <i class="fas fa-hospital me-2"></i>Clinic Information
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="doctors-tab" data-bs-toggle="tab" data-bs-target="#doctors" type="button" role="tab">
+                                <i class="fas fa-user-md me-2"></i>Doctors
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="booking-tab" data-bs-toggle="tab" data-bs-target="#booking" type="button" role="tab">
+                                <i class="fas fa-calendar-alt me-2"></i>Booking Settings
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="faqs-management-tab" data-bs-toggle="tab" data-bs-target="#faqs-management" type="button" role="tab">
+                                <i class="fas fa-question-circle me-2"></i>FAQ Management
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-body">
+                    <div class="tab-content" id="settingsTabsContent">
+                        
+                        <!-- Clinic Information Tab -->
+                        <div class="tab-pane fade show active" id="clinic-info" role="tabpanel">
+                            <h5 class="mb-4">Clinic Information & Configuration</h5>
+                            
+                            <form id="clinicSettingsForm">
+                                <div class="row">
+                                    <!-- Basic Information -->
+                                    <div class="col-md-6">
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Basic Information</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Clinic Name *</label>
+                                                    <input type="text" class="form-control" id="clinic_name" name="clinic_name" required>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Logo URL</label>
+                                                    <input type="url" class="form-control" id="clinic_logo_url" name="clinic_logo_url">
+                                                    <div class="form-text">Enter the URL of your clinic logo</div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Phone</label>
+                                                    <input type="tel" class="form-control" id="phone" name="phone">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="email" name="email">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Website</label>
+                                                    <input type="url" class="form-control" id="website" name="website">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Address Information -->
+                                    <div class="col-md-6">
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Address Information</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Address Line 1</label>
+                                                    <input type="text" class="form-control" id="address_line1" name="address_line1">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Address Line 2</label>
+                                                    <input type="text" class="form-control" id="address_line2" name="address_line2">
+                                                </div>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">City</label>
+                                                        <input type="text" class="form-control" id="city" name="city">
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">State</label>
+                                                        <input type="text" class="form-control" id="state" name="state">
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">ZIP Code</label>
+                                                        <input type="text" class="form-control" id="zip_code" name="zip_code">
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Country</label>
+                                                        <input type="text" class="form-control" id="country" name="country" value="USA">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Operating Hours -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Operating Hours</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="operating-hours">
+                                            <!-- Operating hours will be populated by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Departments -->
+                                <div class="card mb-4">
+                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                        <h6 class="mb-0">Departments / Specialties</h6>
+                                        <button type="button" class="btn btn-sm btn-primary" onclick="addDepartment()">
+                                            <i class="fas fa-plus me-1"></i>Add Department
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="departments-list">
+                                            <!-- Departments will be populated by JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Notification Settings -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Notification Settings</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications">
+                                                    <label class="form-check-label" for="email_notifications">
+                                                        Email Notifications
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="sms_notifications" name="sms_notifications">
+                                                    <label class="form-check-label" for="sms_notifications">
+                                                        SMS Notifications
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Timezone</label>
+                                                <select class="form-select" id="timezone" name="timezone">
+                                                    <option value="UTC">UTC</option>
+                                                    <option value="America/New_York">Eastern Time</option>
+                                                    <option value="America/Chicago">Central Time</option>
+                                                    <option value="America/Denver">Mountain Time</option>
+                                                    <option value="America/Los_Angeles">Pacific Time</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Clinic Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Doctors Tab -->
+                        <div class="tab-pane fade" id="doctors" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5>Doctor Management</h5>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDoctorModal">
+                                    <i class="fas fa-plus me-2"></i>Add Doctor
+                                </button>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-striped" id="doctorsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Specialization</th>
+                                            <th>Department</th>
+                                            <th>Contact</th>
+                                            <th>Consultation Modes</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Doctors will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <!-- Booking Settings Tab -->
+                        <div class="tab-pane fade" id="booking" role="tabpanel">
+                            <h5 class="mb-4">Booking Configuration</h5>
+                            
+                            <form id="bookingSettingsForm">
+                                <div class="row">
+                                    <!-- Time Slot Settings -->
+                                    <div class="col-md-6">
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Time Slot Settings</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Appointment Duration (minutes)</label>
+                                                    <select class="form-select" id="slot_duration" name="slot_duration">
+                                                        <option value="15">15 minutes</option>
+                                                        <option value="30">30 minutes</option>
+                                                        <option value="45">45 minutes</option>
+                                                        <option value="60">60 minutes</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Buffer Time Between Appointments (minutes)</label>
+                                                    <input type="number" class="form-control" id="buffer_time" name="buffer_time" min="0" max="30">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Daily Limits -->
+                                    <div class="col-md-6">
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Daily Limits</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Max Appointments Per Day</label>
+                                                    <input type="number" class="form-control" id="max_appointments_per_day" name="max_appointments_per_day" min="1" max="100">
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Max Appointments Per Doctor</label>
+                                                    <input type="number" class="form-control" id="max_appointments_per_doctor" name="max_appointments_per_doctor" min="1" max="50">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <!-- Booking Window -->
+                                    <div class="col-md-6">
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Booking Window</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Advance Booking (days)</label>
+                                                    <input type="number" class="form-control" id="advance_booking_days" name="advance_booking_days" min="1" max="365">
+                                                    <div class="form-text">How far in advance can patients book?</div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <label class="form-label">Minimum Notice (hours)</label>
+                                                    <input type="number" class="form-control" id="min_booking_notice_hours" name="min_booking_notice_hours" min="1" max="72">
+                                                    <div class="form-text">Minimum notice required for booking</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Approval Settings -->
+                                    <div class="col-md-6">
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">Approval Settings</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="auto_approve_appointments" name="auto_approve_appointments">
+                                                        <label class="form-check-label" for="auto_approve_appointments">
+                                                            Auto-approve appointments
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="mb-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="require_staff_approval" name="require_staff_approval">
+                                                        <label class="form-check-label" for="require_staff_approval">
+                                                            Require staff approval
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Notification Settings -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Notification Settings</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="send_confirmation_email" name="send_confirmation_email">
+                                                    <label class="form-check-label" for="send_confirmation_email">
+                                                        Send confirmation email
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="send_reminder_email" name="send_reminder_email">
+                                                    <label class="form-check-label" for="send_reminder_email">
+                                                        Send reminder email
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label">Reminder Hours Before</label>
+                                                <input type="number" class="form-control" id="reminder_hours_before" name="reminder_hours_before" min="1" max="168">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save me-2"></i>Save Booking Settings
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- FAQ Management Tab -->
+                        <div class="tab-pane fade" id="faqs-management" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h5>FAQ Management</h5>
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFaqModal">
+                                    <i class="fas fa-plus me-2"></i>Add FAQ
+                                </button>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-striped" id="faqsManagementTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Question</th>
+                                            <th>Answer Preview</th>
+                                            <th>Language</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- FAQs will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Doctor Modal -->
+<div class="modal fade" id="addDoctorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Doctor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDoctorForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">First Name *</label>
+                            <input type="text" class="form-control" name="first_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Last Name *</label>
+                            <input type="text" class="form-control" name="last_name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" class="form-control" name="title" placeholder="Dr., MD, etc.">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Specialization</label>
+                            <input type="text" class="form-control" name="specialization">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Department</label>
+                            <input type="text" class="form-control" name="department">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Years of Experience</label>
+                            <input type="number" class="form-control" name="years_of_experience" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Phone</label>
+                            <input type="tel" class="form-control" name="phone">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Languages Spoken</label>
+                        <input type="text" class="form-control" name="languages_spoken" placeholder="English, Spanish, French">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Consultation Modes</label>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="in_person_consultation" checked>
+                                    <label class="form-check-label">In-Person</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="video_consultation">
+                                    <label class="form-check-label">Video Call</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="phone_consultation">
+                                    <label class="form-check-label">Phone Call</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Bio</label>
+                        <textarea class="form-control" name="bio" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveDoctor()">Save Doctor</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add FAQ Modal -->
+<div class="modal fade" id="addFaqModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New FAQ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addFaqForm">
+                    <div class="mb-3">
+                        <label class="form-label">Category *</label>
+                        <select class="form-select" name="category" required>
+                            <option value="">Select category...</option>
+                            <option value="general">General</option>
+                            <option value="appointments">Appointments</option>
+                            <option value="insurance">Insurance</option>
+                            <option value="services">Services</option>
+                            <option value="billing">Billing</option>
+                            <option value="emergency">Emergency</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Question *</label>
+                        <textarea class="form-control" name="question" rows="2" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Answer *</label>
+                        <textarea class="form-control" name="answer" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Language</label>
+                        <select class="form-select" name="language">
+                            <option value="en">English</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveAdminFaq()">Save FAQ</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Global variables
+let clinicSettings = {};
+let doctors = [];
+let bookingSettings = {};
+let faqs = [];
+
+// Initialize the page
+document.addEventListener('DOMContentLoaded', function() {
+    loadClinicSettings();
+    loadDoctors();
+    loadBookingSettings();
+    loadAdminFaqs();
+    
+    // Setup form submissions
+    document.getElementById('clinicSettingsForm').addEventListener('submit', saveClinicSettings);
+    document.getElementById('bookingSettingsForm').addEventListener('submit', saveBookingSettings);
+});
+
+// Clinic Settings Functions
+async function loadClinicSettings() {
+    try {
+        const response = await fetch('/admin/clinic-settings');
+        clinicSettings = await response.json();
+        populateClinicSettingsForm();
+    } catch (error) {
+        console.error('Error loading clinic settings:', error);
+        showAlert('Error loading clinic settings', 'danger');
+    }
+}
+
+function populateClinicSettingsForm() {
+    // Basic information
+    document.getElementById('clinic_name').value = clinicSettings.clinic_name || '';
+    document.getElementById('clinic_logo_url').value = clinicSettings.clinic_logo_url || '';
+    document.getElementById('phone').value = clinicSettings.phone || '';
+    document.getElementById('email').value = clinicSettings.email || '';
+    document.getElementById('website').value = clinicSettings.website || '';
+    
+    // Address
+    document.getElementById('address_line1').value = clinicSettings.address_line1 || '';
+    document.getElementById('address_line2').value = clinicSettings.address_line2 || '';
+    document.getElementById('city').value = clinicSettings.city || '';
+    document.getElementById('state').value = clinicSettings.state || '';
+    document.getElementById('zip_code').value = clinicSettings.zip_code || '';
+    document.getElementById('country').value = clinicSettings.country || 'USA';
+    
+    // Notifications
+    document.getElementById('email_notifications').checked = clinicSettings.email_notifications || false;
+    document.getElementById('sms_notifications').checked = clinicSettings.sms_notifications || false;
+    document.getElementById('timezone').value = clinicSettings.timezone || 'UTC';
+    
+    // Operating hours
+    populateOperatingHours();
+    
+    // Departments
+    populateDepartments();
+}
+
+function populateOperatingHours() {
+    const operatingHours = clinicSettings.operating_hours ? JSON.parse(clinicSettings.operating_hours) : {};
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    
+    let html = '';
+    days.forEach((day, index) => {
+        const dayData = operatingHours[day] || {open: '09:00', close: '17:00', closed: false};
+        html += `
+            <div class="row mb-2">
+                <div class="col-md-2">
+                    <label class="form-label">${dayNames[index]}</label>
+                </div>
+                <div class="col-md-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="${day}_closed" ${dayData.closed ? 'checked' : ''}>
+                        <label class="form-check-label">Closed</label>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <input type="time" class="form-control" id="${day}_open" value="${dayData.open}" ${dayData.closed ? 'disabled' : ''}>
+                </div>
+                <div class="col-md-1 text-center">
+                    <span>to</span>
+                </div>
+                <div class="col-md-3">
+                    <input type="time" class="form-control" id="${day}_close" value="${dayData.close}" ${dayData.closed ? 'disabled' : ''}>
+                </div>
+            </div>
+        `;
+    });
+    
+    document.getElementById('operating-hours').innerHTML = html;
+    
+    // Add event listeners for closed checkboxes
+    days.forEach(day => {
+        document.getElementById(`${day}_closed`).addEventListener('change', function() {
+            const isChecked = this.checked;
+            document.getElementById(`${day}_open`).disabled = isChecked;
+            document.getElementById(`${day}_close`).disabled = isChecked;
+        });
+    });
+}
+
+function populateDepartments() {
+    const departments = clinicSettings.departments ? JSON.parse(clinicSettings.departments) : [];
+    let html = '';
+    
+    departments.forEach((dept, index) => {
+        html += `
+            <div class="row mb-2" id="dept-${index}">
+                <div class="col-md-4">
+                    <input type="text" class="form-control" placeholder="Department Name" value="${dept.name}" onchange="updateDepartment(${index}, 'name', this.value)">
+                </div>
+                <div class="col-md-6">
+                    <input type="text" class="form-control" placeholder="Description" value="${dept.description}" onchange="updateDepartment(${index}, 'description', this.value)">
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeDepartment(${index})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    document.getElementById('departments-list').innerHTML = html;
+}
+
+function addDepartment() {
+    const departments = clinicSettings.departments ? JSON.parse(clinicSettings.departments) : [];
+    departments.push({name: '', description: ''});
+    clinicSettings.departments = JSON.stringify(departments);
+    populateDepartments();
+}
+
+function updateDepartment(index, field, value) {
+    const departments = JSON.parse(clinicSettings.departments);
+    departments[index][field] = value;
+    clinicSettings.departments = JSON.stringify(departments);
+}
+
+function removeDepartment(index) {
+    const departments = JSON.parse(clinicSettings.departments);
+    departments.splice(index, 1);
+    clinicSettings.departments = JSON.stringify(departments);
+    populateDepartments();
+}
+
+async function saveClinicSettings(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Collect operating hours
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const operatingHours = {};
+    days.forEach(day => {
+        operatingHours[day] = {
+            open: document.getElementById(`${day}_open`).value,
+            close: document.getElementById(`${day}_close`).value,
+            closed: document.getElementById(`${day}_closed`).checked
+        };
+    });
+    data.operating_hours = operatingHours;
+    
+    // Collect departments
+    const departments = clinicSettings.departments ? JSON.parse(clinicSettings.departments) : [];
+    data.departments = departments;
+    
+    // Convert checkboxes to boolean
+    data.email_notifications = document.getElementById('email_notifications').checked;
+    data.sms_notifications = document.getElementById('sms_notifications').checked;
+    
+    try {
+        const response = await fetch('/admin/clinic-settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            showAlert('Clinic settings saved successfully!', 'success');
+        } else {
+            showAlert('Error saving clinic settings: ' + result.message, 'danger');
+        }
+    } catch (error) {
+        console.error('Error saving clinic settings:', error);
+        showAlert('Error saving clinic settings', 'danger');
+    }
+}
+
+// Doctor Management Functions
+async function loadDoctors() {
+    try {
+        const response = await fetch('/admin/doctors');
+        doctors = await response.json();
+        populateDoctorsTable();
+    } catch (error) {
+        console.error('Error loading doctors:', error);
+        showAlert('Error loading doctors', 'danger');
+    }
+}
+
+function populateDoctorsTable() {
+    const tbody = document.querySelector('#doctorsTable tbody');
+    let html = '';
+    
+    doctors.forEach(doctor => {
+        const consultationModes = [];
+        if (doctor.in_person_consultation) consultationModes.push('In-Person');
+        if (doctor.video_consultation) consultationModes.push('Video');
+        if (doctor.phone_consultation) consultationModes.push('Phone');
+        
+        html += `
+            <tr>
+                <td>${doctor.title} ${doctor.first_name} ${doctor.last_name}</td>
+                <td>${doctor.specialization || '-'}</td>
+                <td>${doctor.department || '-'}</td>
+                <td>
+                    ${doctor.email ? `<div>${doctor.email}</div>` : ''}
+                    ${doctor.phone ? `<div>${doctor.phone}</div>` : ''}
+                </td>
+                <td>${consultationModes.join(', ')}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editDoctor(${doctor.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteDoctor(${doctor.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+async function saveDoctor() {
+    const form = document.getElementById('addDoctorForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Convert checkboxes to boolean
+    data.in_person_consultation = form.querySelector('[name="in_person_consultation"]').checked;
+    data.video_consultation = form.querySelector('[name="video_consultation"]').checked;
+    data.phone_consultation = form.querySelector('[name="phone_consultation"]').checked;
+    
+    try {
+        const response = await fetch('/admin/doctors', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            showAlert('Doctor added successfully!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('addDoctorModal')).hide();
+            form.reset();
+            loadDoctors();
+        } else {
+            showAlert('Error adding doctor: ' + result.message, 'danger');
+        }
+    } catch (error) {
+        console.error('Error adding doctor:', error);
+        showAlert('Error adding doctor', 'danger');
+    }
+}
+
+async function deleteDoctor(doctorId) {
+    if (!confirm('Are you sure you want to deactivate this doctor?')) return;
+    
+    try {
+        const response = await fetch(`/admin/doctors/${doctorId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            showAlert('Doctor deactivated successfully!', 'success');
+            loadDoctors();
+        } else {
+            showAlert('Error deactivating doctor: ' + result.message, 'danger');
+        }
+    } catch (error) {
+        console.error('Error deactivating doctor:', error);
+        showAlert('Error deactivating doctor', 'danger');
+    }
+}
+
+// Booking Settings Functions
+async function loadBookingSettings() {
+    try {
+        const response = await fetch('/admin/booking-settings');
+        bookingSettings = await response.json();
+        populateBookingSettingsForm();
+    } catch (error) {
+        console.error('Error loading booking settings:', error);
+        showAlert('Error loading booking settings', 'danger');
+    }
+}
+
+function populateBookingSettingsForm() {
+    document.getElementById('slot_duration').value = bookingSettings.slot_duration || 30;
+    document.getElementById('buffer_time').value = bookingSettings.buffer_time || 5;
+    document.getElementById('max_appointments_per_day').value = bookingSettings.max_appointments_per_day || 20;
+    document.getElementById('max_appointments_per_doctor').value = bookingSettings.max_appointments_per_doctor || 10;
+    document.getElementById('advance_booking_days').value = bookingSettings.advance_booking_days || 30;
+    document.getElementById('min_booking_notice_hours').value = bookingSettings.min_booking_notice_hours || 2;
+    document.getElementById('auto_approve_appointments').checked = bookingSettings.auto_approve_appointments || false;
+    document.getElementById('require_staff_approval').checked = bookingSettings.require_staff_approval || true;
+    document.getElementById('send_confirmation_email').checked = bookingSettings.send_confirmation_email || true;
+    document.getElementById('send_reminder_email').checked = bookingSettings.send_reminder_email || true;
+    document.getElementById('reminder_hours_before').value = bookingSettings.reminder_hours_before || 24;
+}
+
+async function saveBookingSettings(event) {
+    event.preventDefault();
+    
+    const formData = new FormData(event.target);
+    const data = Object.fromEntries(formData.entries());
+    
+    // Convert checkboxes to boolean
+    data.auto_approve_appointments = document.getElementById('auto_approve_appointments').checked;
+    data.require_staff_approval = document.getElementById('require_staff_approval').checked;
+    data.send_confirmation_email = document.getElementById('send_confirmation_email').checked;
+    data.send_reminder_email = document.getElementById('send_reminder_email').checked;
+    
+    // Convert numbers
+    data.slot_duration = parseInt(data.slot_duration);
+    data.buffer_time = parseInt(data.buffer_time);
+    data.max_appointments_per_day = parseInt(data.max_appointments_per_day);
+    data.max_appointments_per_doctor = parseInt(data.max_appointments_per_doctor);
+    data.advance_booking_days = parseInt(data.advance_booking_days);
+    data.min_booking_notice_hours = parseInt(data.min_booking_notice_hours);
+    data.reminder_hours_before = parseInt(data.reminder_hours_before);
+    
+    try {
+        const response = await fetch('/admin/booking-settings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            showAlert('Booking settings saved successfully!', 'success');
+        } else {
+            showAlert('Error saving booking settings: ' + result.message, 'danger');
+        }
+    } catch (error) {
+        console.error('Error saving booking settings:', error);
+        showAlert('Error saving booking settings', 'danger');
+    }
+}
+
+// FAQ Management Functions
+async function loadAdminFaqs() {
+    try {
+        const response = await fetch('/admin/faqs');
+        faqs = await response.json();
+        populateAdminFaqsTable();
+    } catch (error) {
+        console.error('Error loading FAQs:', error);
+        showAlert('Error loading FAQs', 'danger');
+    }
+}
+
+function populateAdminFaqsTable() {
+    const tbody = document.querySelector('#faqsManagementTable tbody');
+    let html = '';
+    
+    faqs.forEach(faq => {
+        const answerPreview = faq.answer.length > 100 ? faq.answer.substring(0, 100) + '...' : faq.answer;
+        html += `
+            <tr>
+                <td><span class="badge bg-secondary">${faq.category}</span></td>
+                <td>${faq.question}</td>
+                <td>${answerPreview}</td>
+                <td>${faq.language}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="editAdminFaq(${faq.id})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAdminFaq(${faq.id})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+}
+
+async function saveAdminFaq() {
+    const form = document.getElementById('addFaqForm');
+    const formData = new FormData(form);
+    const data = Object.fromEntries(formData.entries());
+    
+    try {
+        const response = await fetch('/admin/faqs', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            showAlert('FAQ added successfully!', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('addFaqModal')).hide();
+            form.reset();
+            loadAdminFaqs();
+        } else {
+            showAlert('Error adding FAQ: ' + result.message, 'danger');
+        }
+    } catch (error) {
+        console.error('Error adding FAQ:', error);
+        showAlert('Error adding FAQ', 'danger');
+    }
+}
+
+async function deleteAdminFaq(faqId) {
+    if (!confirm('Are you sure you want to delete this FAQ?')) return;
+    
+    try {
+        const response = await fetch(`/admin/faqs/${faqId}`, {
+            method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            showAlert('FAQ deleted successfully!', 'success');
+            loadAdminFaqs();
+        } else {
+            showAlert('Error deleting FAQ: ' + result.message, 'danger');
+        }
+    } catch (error) {
+        console.error('Error deleting FAQ:', error);
+        showAlert('Error deleting FAQ', 'danger');
+    }
+}
+
+// Utility Functions
+function showAlert(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 5000);
+}
+
+function editDoctor(doctorId) {
+    showAlert('Edit doctor functionality coming soon!', 'info');
+}
+
+function editAdminFaq(faqId) {
+    showAlert('Edit FAQ functionality coming soon!', 'info');
+}
+</script>
+{% endblock %}
