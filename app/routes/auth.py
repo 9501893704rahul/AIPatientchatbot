@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, session, redirect, url_for
+from flask import Blueprint, request, jsonify, session, redirect, url_for, render_template, flash
 from app.models import User
 from app import db
 from werkzeug.security import check_password_hash
@@ -20,26 +20,46 @@ def admin_required(f):
     @functools.wraps(f)
     def decorated_function(*args, **kwargs):
         if 'user_id' not in session:
-            return jsonify({'error': 'Authentication required'}), 401
+            if request.is_json:
+                return jsonify({'error': 'Authentication required'}), 401
+            else:
+                flash('Please log in to access the admin panel', 'warning')
+                return redirect(url_for('auth.login'))
         
         user = User.query.get(session['user_id'])
         if not user or user.role != 'admin':
-            return jsonify({'error': 'Admin access required'}), 403
+            if request.is_json:
+                return jsonify({'error': 'Admin access required'}), 403
+            else:
+                flash('Admin access required', 'error')
+                return redirect(url_for('auth.login'))
         
         return f(*args, **kwargs)
     return decorated_function
 
-@auth_bp.route('/login', methods=['POST'])
+@auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """Staff/admin login endpoint."""
-    try:
+    if request.method == 'GET':
+        return render_template('auth/login.html')
+    
+    # Handle both JSON and form data
+    if request.is_json:
         data = request.get_json()
         username = data.get('username')
         password = data.get('password')
-        
-        if not username or not password:
+    else:
+        username = request.form.get('username')
+        password = request.form.get('password')
+    
+    if not username or not password:
+        if request.is_json:
             return jsonify({'error': 'Username and password required'}), 400
-        
+        else:
+            flash('Username and password are required', 'error')
+            return render_template('auth/login.html')
+    
+    try:
         user = User.query.filter_by(username=username, is_active=True).first()
         
         if user and user.check_password(password):
@@ -47,21 +67,37 @@ def login():
             session['user_role'] = user.role
             session['username'] = user.username
             
-            return jsonify({
-                'message': 'Login successful',
-                'user': user.to_dict()
-            })
+            if request.is_json:
+                return jsonify({
+                    'message': 'Login successful',
+                    'user': user.to_dict()
+                })
+            else:
+                flash('Login successful!', 'success')
+                return redirect(url_for('main.admin_dashboard'))
         else:
-            return jsonify({'error': 'Invalid credentials'}), 401
-            
+            if request.is_json:
+                return jsonify({'error': 'Invalid credentials'}), 401
+            else:
+                flash('Invalid username or password', 'error')
+                return render_template('auth/login.html')
+                
     except Exception as e:
-        return jsonify({'error': 'Login failed'}), 500
+        if request.is_json:
+            return jsonify({'error': 'Login failed'}), 500
+        else:
+            flash('Login failed. Please try again.', 'error')
+            return render_template('auth/login.html')
 
-@auth_bp.route('/logout', methods=['POST'])
+@auth_bp.route('/logout', methods=['GET', 'POST'])
 def logout():
     """Logout endpoint."""
     session.clear()
-    return jsonify({'message': 'Logged out successfully'})
+    if request.is_json:
+        return jsonify({'message': 'Logged out successfully'})
+    else:
+        flash('You have been logged out successfully', 'info')
+        return redirect(url_for('main.index'))
 
 @auth_bp.route('/me')
 @login_required
