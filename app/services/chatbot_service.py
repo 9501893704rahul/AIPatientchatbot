@@ -1,6 +1,6 @@
 import openai
 from flask import current_app
-from app.models import FAQ, Patient, Appointment, AftercareInstruction, ChatSession
+from app.models import FAQ, Patient, Appointment, AftercareInstruction, ChatSession, ClinicSettings, Doctor, BookingSettings
 from app.utils.language_utils import translate_text, detect_language
 import json
 import re
@@ -11,7 +11,7 @@ class ChatbotService:
     
     def __init__(self):
         self.client = None
-        self.system_prompt = self._get_system_prompt()
+        self._system_prompt_cache = None
     
     def _initialize_client(self):
         """Initialize OpenAI client if not already done."""
@@ -22,14 +22,42 @@ class ChatbotService:
                 self.client = openai
     
     def _get_system_prompt(self):
-        """Get the system prompt for the AI assistant."""
-        return """You are a helpful AI assistant for a medical clinic. Your role is to:
+        """Get the system prompt for the AI assistant with dynamic clinic information."""
+        # Use cached prompt if available
+        if self._system_prompt_cache:
+            return self._system_prompt_cache
+            
+        # Get clinic settings
+        clinic_settings = ClinicSettings.query.first()
+        
+        clinic_name = clinic_settings.clinic_name if clinic_settings else "Medical Clinic"
+        clinic_info = ""
+        
+        if clinic_settings:
+            clinic_info = f"""
+CLINIC INFORMATION:
+- Name: {clinic_settings.clinic_name}
+- Phone: {clinic_settings.phone or 'Contact us for phone number'}
+- Email: {clinic_settings.email or 'Contact us for email'}
+- Address: {self._format_address(clinic_settings)}
+- Website: {clinic_settings.website or 'Not available'}
+
+OPERATING HOURS:
+{self._format_operating_hours(clinic_settings.operating_hours)}
+
+DEPARTMENTS/SERVICES:
+{self._format_departments(clinic_settings.departments)}
+"""
+        
+        prompt = f"""You are a helpful AI assistant for {clinic_name}. Your role is to:
 
 1. Help patients with appointment scheduling
 2. Answer frequently asked questions about the clinic
 3. Collect patient intake information
 4. Provide aftercare instructions when appropriate
 5. Guide patients through the clinic's services
+
+{clinic_info}
 
 Guidelines:
 - Be professional, empathetic, and helpful
@@ -39,6 +67,7 @@ Guidelines:
 - Be clear about what information you need and why
 - Respect patient privacy and confidentiality
 - If you cannot help with something, politely explain and suggest alternatives
+- Use the clinic information above to answer questions about hours, location, services, etc.
 
 Available actions you can perform:
 - SCHEDULE_APPOINTMENT: Help schedule appointments
@@ -48,6 +77,71 @@ Available actions you can perform:
 - GENERAL_HELP: Provide general assistance
 
 Always respond in a conversational, friendly manner while maintaining professionalism."""
+        
+        # Cache the prompt
+        self._system_prompt_cache = prompt
+        return prompt
+
+    def _format_address(self, clinic_settings):
+        """Format clinic address for display."""
+        address_parts = []
+        if clinic_settings.address_line1:
+            address_parts.append(clinic_settings.address_line1)
+        if clinic_settings.address_line2:
+            address_parts.append(clinic_settings.address_line2)
+        if clinic_settings.city:
+            city_state = clinic_settings.city
+            if clinic_settings.state:
+                city_state += f", {clinic_settings.state}"
+            if clinic_settings.zip_code:
+                city_state += f" {clinic_settings.zip_code}"
+            address_parts.append(city_state)
+        if clinic_settings.country and clinic_settings.country != 'USA':
+            address_parts.append(clinic_settings.country)
+        
+        return ", ".join(address_parts) if address_parts else "Address not available"
+
+    def _format_operating_hours(self, operating_hours_json):
+        """Format operating hours for display."""
+        if not operating_hours_json:
+            return "Operating hours not available"
+        
+        try:
+            hours = json.loads(operating_hours_json)
+            formatted_hours = []
+            
+            for day, info in hours.items():
+                if info.get('closed', False):
+                    formatted_hours.append(f"- {day.capitalize()}: Closed")
+                else:
+                    open_time = info.get('open', 'N/A')
+                    close_time = info.get('close', 'N/A')
+                    formatted_hours.append(f"- {day.capitalize()}: {open_time} - {close_time}")
+            
+            return "\n".join(formatted_hours)
+        except (json.JSONDecodeError, AttributeError):
+            return "Operating hours not available"
+
+    def _format_departments(self, departments_json):
+        """Format departments/services for display."""
+        if not departments_json:
+            return "Services information not available"
+        
+        try:
+            departments = json.loads(departments_json)
+            formatted_deps = []
+            
+            for dept in departments:
+                name = dept.get('name', 'Unknown')
+                description = dept.get('description', '')
+                if description:
+                    formatted_deps.append(f"- {name}: {description}")
+                else:
+                    formatted_deps.append(f"- {name}")
+            
+            return "\n".join(formatted_deps)
+        except (json.JSONDecodeError, AttributeError):
+            return "Services information not available"
 
     def process_message(self, message, session_id, language='en'):
         """Process a user message and return an appropriate response."""
@@ -123,7 +217,7 @@ Always respond in a conversational, friendly manner while maintaining profession
         try:
             # Use OpenAI to understand the appointment request
             prompt = f"""
-            System: {self.system_prompt}
+            System: {self._get_system_prompt()}
             
             User message: {message}
             Context: {json.dumps(context)}
@@ -157,10 +251,29 @@ Always respond in a conversational, friendly manner while maintaining profession
     
     def _handle_appointment_scheduling_fallback(self, message, context, language):
         """Fallback appointment scheduling without OpenAI."""
+        # Get available doctors and booking settings
+        doctors = Doctor.query.filter_by(is_active=True).all()
+        booking_settings = BookingSettings.query.first()
+        
+        doctor_info = ""
+        if doctors:
+            doctor_list = []
+            for doctor in doctors:
+                specialization = f" ({doctor.specialization})" if doctor.specialization else ""
+                doctor_list.append(f"- Dr. {doctor.first_name} {doctor.last_name}{specialization}")
+            doctor_info = f"\n\nOur available doctors:\n" + "\n".join(doctor_list)
+        
+        booking_info = ""
+        if booking_settings:
+            slot_duration = booking_settings.slot_duration
+            min_notice = booking_settings.min_booking_notice_hours
+            advance_days = booking_settings.advance_booking_days
+            booking_info = f"\n\nBooking Information:\n- Appointment duration: {slot_duration} minutes\n- Minimum notice required: {min_notice} hours\n- You can book up to {advance_days} days in advance"
+        
         return {
-            'message': "I'd be happy to help you schedule an appointment! To get started, I'll need some information:\n\n1. What type of appointment do you need? (consultation, follow-up, etc.)\n2. What is your preferred date and time?\n3. What is the reason for your visit?\n4. May I have your name and contact information?\n\nPlease provide these details and I'll help you find the best available slot.",
+            'message': f"I'd be happy to help you schedule an appointment! To get started, I'll need some information:\n\n1. What type of appointment do you need? (consultation, follow-up, etc.)\n2. Which doctor would you prefer to see?\n3. What is your preferred date and time?\n4. What is the reason for your visit?\n5. May I have your name and contact information?{doctor_info}{booking_info}\n\nPlease provide these details and I'll help you find the best available slot.",
             'type': 'appointment_scheduling',
-            'metadata': {'step': 'collect_info'}
+            'metadata': {'step': 'collect_info', 'doctors': [d.to_dict() for d in doctors]}
         }
     
     def _handle_faq(self, message, language):
@@ -185,10 +298,32 @@ Always respond in a conversational, friendly manner while maintaining profession
                 'metadata': {'faq_id': faq.id, 'category': faq.category}
             }
         else:
+            # If no FAQ matches, provide general clinic information
+            clinic_settings = ClinicSettings.query.first()
+            clinic_info_msg = "I don't have specific information about that topic, but here's some general information about our clinic:\n\n"
+            
+            if clinic_settings:
+                if clinic_settings.phone:
+                    clinic_info_msg += f"📞 Phone: {clinic_settings.phone}\n"
+                if clinic_settings.email:
+                    clinic_info_msg += f"📧 Email: {clinic_settings.email}\n"
+                if clinic_settings.address_line1:
+                    clinic_info_msg += f"📍 Address: {self._format_address(clinic_settings)}\n"
+                
+                # Add operating hours
+                if clinic_settings.operating_hours:
+                    clinic_info_msg += f"\n🕒 Operating Hours:\n{self._format_operating_hours(clinic_settings.operating_hours)}\n"
+                
+                # Add services
+                if clinic_settings.departments:
+                    clinic_info_msg += f"\n🏥 Our Services:\n{self._format_departments(clinic_settings.departments)}\n"
+            
+            clinic_info_msg += "\nFor specific questions, please contact our staff directly or try rephrasing your question."
+            
             return {
-                'message': "I don't have specific information about that topic. Here are some common questions I can help with:\n\n• Clinic hours and location\n• Insurance and payment options\n• Available services\n• Appointment scheduling\n\nCould you please rephrase your question or contact our staff directly for more specific information?",
+                'message': clinic_info_msg,
                 'type': 'faq',
-                'metadata': {'no_match': True}
+                'metadata': {'no_match': True, 'clinic_info_provided': True}
             }
     
     def _handle_intake_form(self, message, context, language):
@@ -229,7 +364,7 @@ Always respond in a conversational, friendly manner while maintaining profession
             context_str = "\n".join([f"{msg['sender']}: {msg['message']}" for msg in context[-3:]])
             
             prompt = f"""
-            System: {self.system_prompt}
+            System: {self._get_system_prompt()}
             
             Previous conversation:
             {context_str}
@@ -262,15 +397,19 @@ Always respond in a conversational, friendly manner while maintaining profession
         greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening']
         message_lower = message.lower()
         
+        # Get clinic name for personalized greeting
+        clinic_settings = ClinicSettings.query.first()
+        clinic_name = clinic_settings.clinic_name if clinic_settings else "our clinic"
+        
         if any(greeting in message_lower for greeting in greetings):
             return {
-                'message': "Hello! Welcome to our clinic's AI assistant. I'm here to help you with:\n\n• Scheduling appointments\n• Answering questions about our services\n• Collecting intake information\n• Providing aftercare instructions\n\nHow can I assist you today?",
+                'message': f"Hello! Welcome to {clinic_name}'s AI assistant. I'm here to help you with:\n\n• Scheduling appointments\n• Answering questions about our services\n• Collecting intake information\n• Providing aftercare instructions\n\nHow can I assist you today?",
                 'type': 'greeting',
                 'metadata': {}
             }
         
         return {
-            'message': "I'm here to help you with clinic-related questions and services. I can assist with appointment scheduling, answer frequently asked questions, help with intake forms, and provide aftercare information.\n\nWhat would you like help with today?",
+            'message': f"I'm here to help you with {clinic_name}-related questions and services. I can assist with appointment scheduling, answer frequently asked questions, help with intake forms, and provide aftercare information.\n\nWhat would you like help with today?",
             'type': 'general',
             'metadata': {}
         }
